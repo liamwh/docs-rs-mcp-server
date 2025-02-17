@@ -1,0 +1,17 @@
+[package]
+name = "docs-rs-mcp"
+description = "MCP server for docs.rs"
+default-run = "docs-rs-mcp"
+version = "0.1.0"
+edition = "2021"
+authors = ["Liam Woodleigh-Hardinge <liam.woodleigh@gmail.com>"]
+
+[dependencies]
+tokio = { version = "1", features = ["full"] }
+mcp-sdk = "~0.0.3"
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+anyhow = "1.0"
+tracing-subscriber = "0.3"
+tracing = "0.1"
+home = "0.5.9"
