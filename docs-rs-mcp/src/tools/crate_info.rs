@@ -125,6 +125,47 @@ impl CrateInfoTool {
 
         Ok(info)
     }
+
+    fn run_cargo_info(&self, crate_name: &str) -> Result<String> {
+        // Try to find cargo in common locations
+        let cargo_paths = vec![
+            "cargo".to_string(), // Try PATH first
+            "/usr/bin/cargo".to_string(),
+            "/usr/local/bin/cargo".to_string(),
+            // Add home directory cargo location if available
+            home::home_dir()
+                .map(|h| h.join(".cargo/bin/cargo").to_string_lossy().into_owned())
+                .unwrap_or_default(),
+        ];
+
+        let mut last_error = None;
+        for cargo_path in cargo_paths {
+            let result = Command::new(&cargo_path)
+                .arg("info")
+                .arg(crate_name)
+                .output();
+
+            match result {
+                Ok(output) if output.status.success() => {
+                    return Ok(String::from_utf8(output.stdout)?);
+                }
+                Ok(output) => {
+                    last_error = Some(format!(
+                        "Cargo command failed: {}",
+                        String::from_utf8_lossy(&output.stderr)
+                    ));
+                }
+                Err(e) => {
+                    last_error = Some(format!("Failed to execute cargo at {}: {}", cargo_path, e));
+                }
+            }
+        }
+
+        Err(anyhow::anyhow!(
+            "Could not find or execute cargo. Please ensure cargo is installed and in your PATH. Last error: {}",
+            last_error.unwrap_or_else(|| "No error details available".to_string())
+        ))
+    }
 }
 
 impl Tool for CrateInfoTool {
@@ -155,20 +196,10 @@ impl Tool for CrateInfoTool {
     fn call(&self, input: Option<serde_json::Value>) -> Result<CallToolResponse> {
         let args: CrateNameParam = serde_json::from_value(input.unwrap_or_default())?;
 
-        let output = Command::new("cargo")
-            .arg("info")
-            .arg(&args.crate_name)
-            .output()?;
+        // Try to find cargo-info in multiple ways
+        let output = self.run_cargo_info(&args.crate_name)?;
 
-        if !output.status.success() {
-            return Err(anyhow::anyhow!(
-                "Failed to get crate info: {}",
-                String::from_utf8_lossy(&output.stderr)
-            ));
-        }
-
-        let output_str = String::from_utf8(output.stdout)?;
-        let crate_info = self.parse_cargo_info_output(&output_str)?;
+        let crate_info = self.parse_cargo_info_output(&output)?;
 
         Ok(CallToolResponse {
             content: vec![ToolResponseContent::Text {
