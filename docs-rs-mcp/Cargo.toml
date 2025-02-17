@@ -6,6 +6,14 @@ version = "0.1.0"
 edition = "2021"
 authors = ["Liam Woodleigh-Hardinge <liam.woodleigh@gmail.com>"]
 
+[lib]
+name = "docs_rs_mcp"
+path = "src/lib.rs"
+
+[[bin]]
+name = "docs-rs-mcp"
+path = "src/main.rs"
+
 [dependencies]
 tokio = { version = "1", features = ["full"] }
 mcp-sdk = "~0.0.3"
