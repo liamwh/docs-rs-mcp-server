@@ -1,14 +1,14 @@
 use anyhow::Result;
 use mcp_sdk::{
     server::Server,
-    tools::Tools,
+    tools::{Tool, Tools},
     transport::ServerStdioTransport,
     types::{ListRequest, ResourcesListResponse, ServerCapabilities},
 };
 use serde_json::json;
 
 mod tools;
-use tools::CrateInfoTool;
+use tools::{CrateInfoTool, CrateItemsTool};
 
 #[tokio::main]
 async fn main() -> Result<()> {
@@ -21,7 +21,10 @@ async fn main() -> Result<()> {
     let tools = tool_set();
     let server = Server::builder(ServerStdioTransport)
         .capabilities(ServerCapabilities {
-            tools: Some(json!({})),
+            tools: Some(json!({
+                "crate_info": CrateInfoTool::new().as_definition(),
+                "crate_items": CrateItemsTool::new().as_definition(),
+            })),
             ..Default::default()
         })
         .tools(tools)
@@ -48,5 +51,6 @@ async fn main() -> Result<()> {
 fn tool_set() -> Tools {
     let mut tools = Tools::default();
     tools.add_tool(CrateInfoTool::new());
+    tools.add_tool(CrateItemsTool::new());
     tools
 }

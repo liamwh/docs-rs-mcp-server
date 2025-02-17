@@ -13,3 +13,7 @@ default:
 install-mcp:
     chmod +x scripts/install-claude-config.rs
     cargo script scripts/install-claude-config.rs
+
+# Test a crate and module
+test-module package test:
+    cargo nextest run --filterset "package({{package}}) & test({{test}})"

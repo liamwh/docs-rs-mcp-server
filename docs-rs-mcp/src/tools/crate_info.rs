@@ -168,6 +168,12 @@ impl CrateInfoTool {
     }
 }
 
+impl Default for CrateInfoTool {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl Tool for CrateInfoTool {
     fn name(&self) -> String {
         "crate_info".to_string()

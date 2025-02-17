@@ -1,0 +1,1 @@
+Run tests using `just test-module docs-rs-mcp {file_name}`. For example, `just test-module docs-rs-mcp crate_items`. If running the tests results in PowerShell issues, don't worry about them and focus on fixing the result of the test output.
