@@ -17,3 +17,7 @@ install-mcp:
 # Test a crate and module
 test-module package test:
     cargo nextest run --filterset "package({{package}}) & test({{test}})"
+
+stdin-test:
+    chmod +x scripts/stdin-test.rs
+    cargo script scripts/stdin-test.rs

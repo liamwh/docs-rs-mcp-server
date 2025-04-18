@@ -8,7 +8,7 @@ use mcp_sdk::{
 use serde_json::json;
 
 mod tools;
-use tools::{CrateInfoTool, CrateItemsTool};
+use tools::{CrateInfoTool, CrateItemsTool, StructDocsTool};
 
 #[tokio::main]
 async fn main() -> Result<()> {
@@ -24,6 +24,7 @@ async fn main() -> Result<()> {
             tools: Some(json!({
                 "crate_info": CrateInfoTool::new().as_definition(),
                 "crate_items": CrateItemsTool::new().as_definition(),
+                "get_struct_docs": StructDocsTool::new().as_definition(),
             })),
             ..Default::default()
         })
@@ -48,9 +49,11 @@ async fn main() -> Result<()> {
     Ok(())
 }
 
+//NOTE: Must be updated if a tool is added!
 fn tool_set() -> Tools {
     let mut tools = Tools::default();
     tools.add_tool(CrateInfoTool::new());
     tools.add_tool(CrateItemsTool::new());
+    tools.add_tool(StructDocsTool::new());
     tools
 }

@@ -178,6 +178,7 @@ name = "docs-rs-mcp"
 version = "0.1.0"
 dependencies = [
  "anyhow",
+ "async-trait",
  "home",
  "mcp-sdk",
  "pretty_assertions",
@@ -188,6 +189,7 @@ dependencies = [
  "tokio",
  "tracing",
  "tracing-subscriber",
+ "url",
 ]
 
 [[package]]

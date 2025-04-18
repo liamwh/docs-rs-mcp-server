@@ -1,5 +1,8 @@
 use anyhow::Result;
-use docs_rs_mcp::tools::{CrateInfoTool, CrateItemsTool};
+use docs_rs_mcp::{
+    tools::{CrateInfoTool, CrateItemsTool},
+    StructDocsTool,
+};
 use mcp_sdk::tools::{Tool, Tools};
 
 #[test]
@@ -8,10 +11,12 @@ fn test_server_capabilities() -> Result<()> {
     let mut tools = Tools::default();
     tools.add_tool(CrateInfoTool::new());
     tools.add_tool(CrateItemsTool::new());
+    tools.add_tool(StructDocsTool::new());
 
     // Verify tool definitions
     let crate_info = CrateInfoTool::new().as_definition();
     let crate_items = CrateItemsTool::new().as_definition();
+    let struct_docs = StructDocsTool::new().as_definition();
 
     assert!(
         crate_info.name.contains("crate_info"),
@@ -35,6 +40,10 @@ fn test_server_capabilities() -> Result<()> {
     );
     assert!(
         !crate_items.description.as_ref().unwrap().is_empty(),
+        "Tool description should not be empty"
+    );
+    assert!(
+        !struct_docs.description.as_ref().unwrap().is_empty(),
         "Tool description should not be empty"
     );
 
