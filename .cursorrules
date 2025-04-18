@@ -1,12 +1,14 @@
 # Rust Instructions
-- Follow clean code principles. Prefer small and pure functions. Unit test them.
-- Run tests using `just test-module docs-rs-mcp {file_name}`. For example, `just test-module docs-rs-mcp crate_items`. If running the tests results in PowerShell issues, don't worry about them and focus on fixing the result of the test output.
-- Never use unwrap() in Rust, preferring anyhow's context(), expect(), ? or something else instead.
+- Follow clean code principles. Prefer small and pure functions. Unit test them. Offer to refactor code that has high cyclomatic complexity once finished with your objective.
+- Reflect on 5-7 different possible sources of the problem, distill those down to 1-2 most likely sources, and then add logs to validate your assumptions before we move onto implementing the actual code fix
+- Use early returns for invariant violations
+- NEVER use unwrap().
+- Error handling: Use thiserror and/or anyhow.
+- Use anyhow::ensure! macro to validate program invariants and return early with an error if they're not met
 - Never use mapper functions. Always prefer implementing the Try/From traits.
-- When writing a unit test and using an assert macro, always include a message.
-- Domain models should never have public fields. Always add getters.
-- Prefer using workspace dependencies when it makes sense. It doesn't make sense with database related dependencies.
-- Always use the chrono crate for date and time operations. Never use the time crate.
-- Always document crates, modules, functions, structs, enums, struct fields and other code elements as per Rust best practice.
+- Follow Domain Driven Design principles.
+- DateTime: Use chrono, never time
+- Document all code elements per Rust standards
 - Always use the instrument macro from tracing crate to instrument functions. If the function can return an error, use the err field in the macro. If the function can return a result that isn't too complex, use the ret field in the macro.
-Always use private fields in structs and use public getters and modifier functions.
+Always use private fields in structs and use public getters and methods that mutate state.
+- When writing a unit test and using the assert macro, always include a message.

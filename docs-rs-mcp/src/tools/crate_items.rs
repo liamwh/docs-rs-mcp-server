@@ -16,11 +16,39 @@ pub struct CrateItems {
     items: HashMap<String, Vec<Item>>,
 }
 
+impl CrateItems {
+    pub fn items(&self) -> &HashMap<String, Vec<Item>> {
+        &self.items
+    }
+
+    pub fn crate_name(&self) -> &str {
+        &self.crate_name
+    }
+
+    pub fn version(&self) -> &str {
+        &self.version
+    }
+}
+
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Item {
     name: String,
     path: String,
     doc_link: String,
+}
+
+impl Item {
+    pub fn name(&self) -> &str {
+        &self.name
+    }
+
+    pub fn path(&self) -> &str {
+        &self.path
+    }
+
+    pub fn doc_link(&self) -> &str {
+        &self.doc_link
+    }
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -36,10 +64,18 @@ impl CrateItemsTool {
         Self
     }
 
+    fn get_docs_rs_url() -> String {
+        std::env::var("DOCS_RS_URL").unwrap_or_else(|_| "https://docs.rs".to_string())
+    }
+
     fn scrape_items(&self, crate_name: &str, version: Option<&str>) -> Result<CrateItems> {
         let client = Client::new();
         let version = version.unwrap_or("latest");
-        let url = format!("https://docs.rs/{crate_name}/{version}/{crate_name}/all.html");
+        let base_url = Self::get_docs_rs_url();
+        let url = format!(
+            "{}/{}/{}/{}/all.html",
+            base_url, crate_name, version, crate_name
+        );
 
         let response = client.get(&url).send()?;
         if !response.status().is_success() {
@@ -79,37 +115,43 @@ impl CrateItemsTool {
                 }
             };
 
-            // Select all items in this section using the h3 ID and following ul.all-items
-            let selector = format!("h3#{} + ul.all-items > li > a", section);
-            let link_selector = Selector::parse(&selector).unwrap();
+            // Try both old and new docs.rs HTML structures
+            let selectors = [
+                format!("h3#{} + ul.all-items > li > a", section),
+                format!("div[id='{}'] > div.item-table > div.item-row > a", section),
+            ];
 
             let mut section_items = Vec::new();
-            for link in document.select(&link_selector) {
-                let name = link.text().collect::<String>().trim().to_string();
-                let path = link
-                    .value()
-                    .attr("href")
-                    .unwrap_or_default()
-                    .trim()
-                    .to_string();
-                let doc_link = if path.starts_with("http") {
-                    path.clone()
-                } else {
-                    format!(
-                        "https://docs.rs/{}/{}/{}/{}",
-                        crate_name,
-                        version,
-                        crate_name,
-                        path.trim_start_matches('/')
-                    )
-                };
+            for selector in &selectors {
+                let link_selector = Selector::parse(selector).unwrap();
+                for link in document.select(&link_selector) {
+                    let name = link.text().collect::<String>().trim().to_string();
+                    let path = link
+                        .value()
+                        .attr("href")
+                        .unwrap_or_default()
+                        .trim()
+                        .to_string();
+                    let doc_link = if path.starts_with("http") {
+                        path.clone()
+                    } else {
+                        format!(
+                            "{}/{}/{}/{}/{}",
+                            base_url,
+                            crate_name,
+                            version,
+                            crate_name,
+                            path.trim_start_matches('/')
+                        )
+                    };
 
-                if !name.is_empty() && !path.is_empty() {
-                    section_items.push(Item {
-                        name,
-                        path,
-                        doc_link,
-                    });
+                    if !name.is_empty() && !path.is_empty() {
+                        section_items.push(Item {
+                            name,
+                            path,
+                            doc_link,
+                        });
+                    }
                 }
             }
 
